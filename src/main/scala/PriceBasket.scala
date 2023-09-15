@@ -7,37 +7,34 @@ object PriceBasket {
     "Milk" -> 1.30
   )
 
-
   // Define special offers for certain items
   val specialOffers: Map[String, (Double, String)] = Map(
     "Apples" -> (0.10, "Apples 10% off"),
     "Soup_Bread" -> (0.50, "Buy 2 tins of Soup, get Bread for half price")
   )
-
   def main(args: Array[String]): Unit = {
     // Check if any items are provided as command-line arguments
     if (args.isEmpty) {
       println("Basket is Empty, Provide an input")
-//      println(unavailableItems)
     }
     else {
       // Convert command-line arguments to a list of items
       val basket = args.toList
-      val unavailableItems = basket.filterNot(itemPrices.contains)
-      if (unavailableItems.isEmpty) {
+      //The partition method is used to split the basket into two parts: availableItems and unavailableItems in ItemPrices.
+      val (availableItems, unavailableItems) = basket.partition(itemPrices.contains)
+      if (unavailableItems.nonEmpty) {
 
-        // Calculate the total price and applicable discounts
-        val (subtotal, total, discounts) = calculateBasketTotal(basket)
+        println(s"The following items are not available: ${unavailableItems.mkString(", ")}")
+      }
+      if (availableItems.nonEmpty) {
+        // Calculate the total price and applicable discounts for available items
+        val (subtotal, total, discounts) = calculateBasketTotal(availableItems)
         // Print the receipt with the subtotal, discounts, and final total
         printReceipt(subtotal, total, discounts)
-      } else {
-        // Print items that are not available
-        println(s"The following items are not available: ${unavailableItems.mkString(", ")}")
       }
 
     }
   }
-
   def calculateBasketTotal(basket: List[String]): (Double,Double, List[(String, Double)]) = {
     // Count the occurrences of each item in the basket
     val itemCounts: Map[String, Int] = basket.groupBy(identity).view.mapValues(_.size).toMap
@@ -50,12 +47,10 @@ object PriceBasket {
     val total = subtotal - discounts.map(_._2).sum
     (subtotal,total, discounts)
   }
-
   def calculateSubtotal(basket: List[String]): Double = {
     // Calculate the subtotal by summing up the prices of items in the basket
     basket.map(item => itemPrices.getOrElse(item, 0.0)).sum
   }
-
   def calculateDiscounts(itemCounts: Map[String, Int], soupCount: Int, breadCount: Int): List[(String, Double)] = {
     itemCounts.toList.flatMap {
       // Check if the item is "Soup" and apply the Soup and Bread discount if conditions are met
